@@ -2,6 +2,7 @@ import pygame, sys
 import os
 
 pygame.font.init()
+pygame.mixer.pre_init(44100, -16, 1, 512)
 pygame.mixer.init()
 
 WIDTH, HEIGHT = 900,500
