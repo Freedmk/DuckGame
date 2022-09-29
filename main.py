@@ -6,8 +6,10 @@ from yaml import YAMLObjectMetaclass
 WIDTH, HEIGHT = 900,500
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Duck Game!")
-WHITE=(255,255,255)
-BLACK=(0,0,0)
+
+BLUE=(32, 30, 117)
+GREEN = (0,255,0)
+YELLOW = (255, 255, 0)
 BORDER = pygame.Rect((WIDTH//2)-5,0,10,HEIGHT)
 
 FPS = 60
@@ -26,13 +28,21 @@ DUCK_GREEN = pygame.transform.flip(pygame.transform.scale(DUCK_IMAGE_GREEN,(DUCK
 DUCK_IMAGE_YELLOW = pygame.image.load(os.path.join('assets', 'kaczuha_yellow.png'))
 DUCK_YELLOW = pygame.transform.scale(DUCK_IMAGE_YELLOW,(DUCK_WIDTH,DUCK_HEIGHT))
 
-QUACK_ATTACK = pygame.transform.scale(pygame.image.load(os.path.join('assets', 'quackAttack.png')), (10,5))
+QUACK_ATTACK_GREEN = pygame.transform.scale(pygame.image.load(os.path.join('assets', 'quackAttack_green.png')), (45,30))
 
-def draw_window(yellow, green):
-    WIN.fill(WHITE)    
-    pygame.draw.rect(WIN, BLACK, BORDER)
+POND = pygame.transform.scale(pygame.image.load(os.path.join('assets', 'ocean.png')), (WIDTH,HEIGHT))
+
+def draw_window(yellow, green, green_bullets, yellow_bullets):
+    WIN.blit(POND, (0, 0))    
+    pygame.draw.rect(WIN, BLUE, BORDER)
     WIN.blit(DUCK_GREEN, (green.x, green.y))
     WIN.blit(DUCK_YELLOW, (yellow.x,yellow.y))
+
+    for bullet in green_bullets:
+        WIN.blit(QUACK_ATTACK, (bullet.x, bullet.y))
+    
+    for bullet in yellow_bullets:
+        pygame.draw.rect(WIN, YELLOW, bullet)
     pygame.display.update()
 
 def green_handle_movement(keys_pressed, green):
@@ -58,14 +68,17 @@ def handle_bullets(green_bullets, yellow_bullets, green, yellow):
     for bullet in green_bullets:
         bullet.x += BULLET_VEL
         if yellow.colliderect(bullet):
-            pygame.event.post(pygame.even.EVENT(YELLOW_HIT))
+            pygame.event.post(pygame.event.Event(YELLOW_HIT))
             green_bullets.remove(bullet)
-
+        elif( bullet.x > WIDTH):
+            green_bullets.remove(bullet)
     for bullet in yellow_bullets:
-        bullet.x += BULLET_VEL
+        bullet.x -= BULLET_VEL
         if green.colliderect(bullet):
-            pygame.event.post(pygame.even.EVENT(GREEN_HIT))
-            green_bullets.remove(bullet)
+            pygame.event.post(pygame.event.Event(GREEN_HIT))
+            yellow_bullets.remove(bullet)
+        elif( bullet.x < 0):
+            yellow_bullets.remove(bullet)
 def main():
     green = pygame.Rect(100, 300, DUCK_WIDTH, DUCK_HEIGHT)
     yellow = pygame.Rect(700, 300, DUCK_WIDTH, DUCK_HEIGHT)
@@ -94,7 +107,7 @@ def main():
         yellow_handle_movement(keys_pressed, yellow)
 
         handle_bullets(green_bullets, yellow_bullets, green, yellow)
-        draw_window(yellow, green)
+        draw_window(yellow, green, green_bullets, yellow_bullets)
     pygame.quit()
 
 if __name__ == "__main__":
